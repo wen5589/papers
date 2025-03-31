@@ -1255,8 +1255,8 @@
                         </div>
                 
                         <div id="watermark-apis" class="subsection">
-                            <h3>6.3 水位线相关 API</h3>
-                            
+<h3>6.3 水位线相关 API</h3>
+
                             <table>
                                 <tr>
                                     <th>API</th>
@@ -1286,4 +1286,349 @@
                                 <tr>
                                     <td>assign_timestamps_and_watermarks(WatermarkStrategy)</td>
                                     <td>为数据流分配时间戳和水位线</td>
-                                    <td>应
+                                    <td>应用水位线策略到数据流</td>
+                                </tr>
+                            </table>
+
+                            <div class="api-box">
+                                <div class="api-name">自定义水位线生成器示例</div>
+                                <pre>
+from pyflink.common import WatermarkStrategy, Types
+from pyflink.common.watermark_strategy import TimestampAssigner, WatermarkGenerator, Watermark
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.datastream.window import TumblingEventTimeWindows
+from pyflink.common.time import Time
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建数据流
+data_stream = env.from_collection([
+    ("A", 1, 1618953000000),
+    ("A", 2, 1618953060000),
+    ("A", 3, 1618953120000),
+    ("A", 4, 1618952900000),  # 延迟事件
+    ("B", 5, 1618953000000),
+    ("B", 6, 1618953120000),
+],
+type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
+
+# 定义自定义水位线生成器
+class CustomWatermarkGenerator(WatermarkGenerator):
+    def __init__(self, max_out_of_orderness):
+        self.max_out_of_orderness = max_out_of_orderness
+        self.max_timestamp = 0
+
+    def on_event(self, event, event_timestamp, output):
+        # 更新最大时间戳
+        self.max_timestamp = max(self.max_timestamp, event_timestamp)
+
+    def on_periodic_emit(self, output):
+        # 发出水位线，最大时间戳减去最大乱序时间
+        output.emit(Watermark(self.max_timestamp - self.max_out_of_orderness))
+
+# 定义时间戳提取器
+class MyTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        return value[2]  # 使用第三个字段作为时间戳
+
+# 创建水位线策略
+watermark_strategy = WatermarkStrategy.for_generator(
+    lambda _: CustomWatermarkGenerator(3000)  # 容忍3秒的乱序
+).with_timestamp_assigner(MyTimestampAssigner())
+
+# 应用水位线策略
+data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 应用窗口操作
+result = data_stream \
+    .key_by(lambda x: x[0]) \
+    .window(TumblingEventTimeWindows.of(Time.minutes(1))) \
+    .sum(1)
+
+result.print()
+env.execute("Custom Watermark Generator Example")
+</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="exercises" class="section">
+                        <h2>7. 综合练习</h2>
+
+                        <div class="exercise">
+                            <div class="exercise-title">练习 1: 实时流量监控系统</div>
+                            <p>
+                                <strong>需求：</strong> 实现一个网站流量监控系统，对不同页面的访问量进行实时统计，包括：
+                            </p>
+                            <ul>
+                                <li>每10秒钟统计一次各页面的访问量</li>
+                                <li>每分钟统计一次各页面的平均访问时长</li>
+                                <li>检测异常流量（单个页面30秒内访问量超过阈值）</li>
+                            </ul>
+                            <p><strong>数据格式：</strong> (访问ID, 页面URL, 用户ID, 访问时长(毫秒), 时间戳)</p>
+                            <pre>
+# 流量监控系统实现
+
+from pyflink.datastream import StreamExecutionEnvironment, OutputTag
+from pyflink.datastream.window import TumblingEventTimeWindows, SlidingEventTimeWindows
+from pyflink.common import WatermarkStrategy, Time, Types
+from pyflink.common.watermark_strategy import TimestampAssigner
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建模拟的网站访问数据
+visits_data = [
+    ("v1", "/home", "user1", 2000, 1618953000000),      # 10:30:00
+    ("v2", "/products", "user2", 4000, 1618953005000),  # 10:30:05
+    ("v3", "/home", "user3", 1000, 1618953010000),      # 10:30:10
+    ("v4", "/cart", "user1", 3000, 1618953015000),      # 10:30:15
+    ("v5", "/products", "user4", 5000, 1618953020000),  # 10:30:20
+    ("v6", "/checkout", "user2", 2000, 1618953025000),  # 10:30:25
+    ("v7", "/home", "user5", 1500, 1618953030000),      # 10:30:30
+    ("v8", "/products", "user3", 3500, 1618953035000),  # 10:30:35
+    ("v9", "/home", "user1", 2000, 1618953040000),      # 10:30:40
+    ("v10", "/products", "user2", 4000, 1618953045000), # 10:30:45
+    ("v11", "/home", "user3", 1000, 1618953050000),     # 10:30:50
+    ("v12", "/cart", "user4", 3000, 1618953055000),     # 10:30:55
+    ("v13", "/home", "user5", 2000, 1618953060000),     # 10:31:00
+    ("v14", "/products", "user1", 4000, 1618953065000), # 10:31:05
+    # 模拟延迟的数据
+    ("v15", "/home", "user2", 1800, 1618952980000),     # 10:29:40 (延迟)
+    # 模拟异常流量 - 多次访问同一页面
+    ("v16", "/products", "user6", 1000, 1618953070000), # 10:31:10
+    ("v17", "/products", "user7", 1500, 1618953075000), # 10:31:15
+    ("v18", "/products", "user8", 2000, 1618953080000), # 10:31:20
+    ("v19", "/products", "user9", 2500, 1618953085000), # 10:31:25
+    ("v20", "/products", "user10", 3000, 1618953090000),# 10:31:30
+]
+
+# 创建数据流
+visits_stream = env.from_collection(
+    visits_data,
+    type_info=Types.TUPLE([Types.STRING(), Types.STRING(), Types.STRING(), Types.INT(), Types.LONG()])
+)
+
+# 定义时间戳提取器
+class VisitTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        return value[4]  # 使用时间戳字段
+
+# 创建水位线策略
+watermark_strategy = (
+    WatermarkStrategy
+    .for_bounded_out_of_orderness(Time.seconds(20))  # 允许20秒的乱序
+    .with_timestamp_assigner(VisitTimestampAssigner())
+)
+
+# 应用水位线策略
+visits_stream = visits_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 定义侧输出标签用于异常流量检测
+anomaly_tag = OutputTag("traffic-anomaly",
+                      Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG(), Types.LONG()]))
+
+# 每10秒统计每个页面的访问量
+page_counts = (
+    visits_stream
+    .key_by(lambda visit: visit[1])  # 按页面URL分组
+    .window(TumblingEventTimeWindows.of(Time.seconds(10)))
+    .aggregate(
+        # 聚合函数 - 计数器
+        lambda acc, value: (value[1], acc[1] + 1),
+        # 初始累加器 - (页面URL, 计数)
+        lambda: ("", 0),
+        # 结果函数
+        lambda acc: (acc[0], acc[1])
+    )
+)
+
+# 每分钟统计每个页面的平均访问时长
+page_avg_duration = (
+    visits_stream
+    .key_by(lambda visit: visit[1])  # 按页面URL分组
+    .window(TumblingEventTimeWindows.of(Time.minutes(1)))
+    .aggregate(
+        # 聚合函数 - 累加访问时长和计数
+        lambda acc, value: (value[1], acc[1] + value[3], acc[2] + 1),
+        # 初始累加器 - (页面URL, 总时长, 计数)
+        lambda: ("", 0, 0),
+        # 结果函数 - 计算平均值
+        lambda acc: (acc[0], acc[1] / acc[2])
+    )
+)
+
+# 检测异常流量 - 30秒滑动窗口，检测访问量超过阈值(4)的页面
+anomaly_detection = (
+    visits_stream
+    .key_by(lambda visit: visit[1])  # 按页面URL分组
+    .window(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(10)))
+    .process(
+        lambda key, context, elements, out: (
+            # 正常输出当前窗口的访问量
+            out.collect((key, len(list(elements)), context.window().start, context.window().end)),
+            # 如果访问量超过阈值，输出到侧输出流
+            out.collect_to_side_output(anomaly_tag, (key, len(list(elements)), context.window().start, context.window().end))
+            if len(list(elements)) >= 4 else None
+        )
+    )
+)
+
+# 获取异常流量数据
+anomalies = anomaly_detection.get_side_output(anomaly_tag)
+
+# 打印结果
+page_counts.print("Page Counts (10s)")
+page_avg_duration.print("Page Avg Duration (1min)")
+anomalies.print("Traffic Anomalies")
+
+# 执行作业
+env.execute("Website Traffic Monitoring")
+</pre>
+                        </div>
+
+                        <div class="exercise">
+                            <div class="exercise-title">练习 2: 股票市场实时分析</div>
+                            <p>
+                                <strong>需求：</strong> 实现股票市场实时分析系统，分析股票价格变动并检测价格异常：
+                            </p>
+                            <ul>
+                                <li>每分钟计算每支股票的最高、最低、开盘和收盘价格(HLOC)</li>
+                                <li>计算每支股票的5分钟移动平均价格</li>
+                                <li>检测价格在短时间内波动超过5%的股票</li>
+                            </ul>
+                            <p><strong>数据格式：</strong> (股票代码, 交易价格, 交易量, 时间戳)</p>
+                            <pre>
+# 股票市场实时分析系统实现
+
+from pyflink.datastream import StreamExecutionEnvironment, OutputTag
+from pyflink.datastream.window import TumblingEventTimeWindows, SlidingEventTimeWindows
+from pyflink.common import WatermarkStrategy, Time, Types
+from pyflink.common.watermark_strategy import TimestampAssigner
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建模拟的股票交易数据
+stock_data = [
+    ("AAPL", 145.85, 100, 1618953000000),  # 10:30:00
+    ("MSFT", 260.50, 200, 1618953060000),  # 10:31:00
+    ("AMZN", 3380.0, 50, 1618953120000),   # 10:32:00
+    ("GOOGL", 2250.0, 80, 1618953180000),  # 10:33:00
+    ("AAPL", 146.20, 150, 1618953240000),  # 10:34:00
+    ("MSFT", 259.80, 120, 1618953300000),  # 10:35:00
+    ("AMZN", 3375.0, 30, 1618953360000),   # 10:36:00
+    ("GOOGL", 2255.0, 40, 1618953420000),  # 10:37:00
+    ("AAPL", 146.50, 200, 1618953480000),  # 10:38:00
+    ("MSFT", 261.20, 180, 1618953540000),  # 10:39:00
+    ("AMZN", 3390.0, 60, 1618953600000),   # 10:40:00
+    ("GOOGL", 2248.0, 90, 1618953660000),  # 10:41:00
+    ("AAPL", 147.10, 300, 1618953720000),  # 10:42:00
+    ("MSFT", 262.50, 250, 1618953780000),  # 10:43:00
+    ("AMZN", 3395.0, 70, 1618953840000),   # 10:44:00
+    # 价格波动较大的交易
+    ("AAPL", 153.00, 500, 1618953900000),  # 10:45:00 (大幅上涨)
+    ("MSFT", 248.00, 400, 1618953960000),  # 10:46:00 (大幅下跌)
+    ("AAPL", 149.00, 200, 1618954020000),  # 10:47:00
+]
+
+# 创建数据流
+stock_stream = env.from_collection(
+    stock_data,
+    type_info=Types.TUPLE([Types.STRING(), Types.DOUBLE(), Types.INT(), Types.LONG()])
+)
+
+# 定义时间戳提取器
+class StockTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        return value[3]  # 使用时间戳字段
+
+# 创建水位线策略
+watermark_strategy = (
+    WatermarkStrategy
+    .for_bounded_out_of_orderness(Time.seconds(10))  # 允许10秒的乱序
+    .with_timestamp_assigner(StockTimestampAssigner())
+)
+
+# 应用水位线策略
+stock_stream = stock_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 定义侧输出标签用于价格异常检测
+price_alert_tag = OutputTag("price-alert",
+                          Types.TUPLE([Types.STRING(), Types.DOUBLE(), Types.DOUBLE(), Types.LONG()]))
+
+# 1. 每分钟计算每支股票的HLOC(最高、最低、开盘、收盘价)
+stock_hloc = (
+    stock_stream
+    .key_by(lambda stock: stock[0])  # 按股票代码分组
+    .window(TumblingEventTimeWindows.of(Time.minutes(1)))
+    .process(
+        lambda key, context, elements, out: out.collect((
+            key,  # 股票代码
+            max(e[1] for e in elements),  # 最高价
+            min(e[1] for e in elements),  # 最低价
+            next(iter(sorted(elements, key=lambda x: x[3])))[1],  # 开盘价(按时间排序第一个)
+            next(iter(sorted(elements, key=lambda x: x[3], reverse=True)))[1],  # 收盘价(按时间排序最后一个)
+            context.window().start,  # 窗口开始时间
+            context.window().end     # 窗口结束时间
+        ))
+    )
+)
+
+# 2. 计算每支股票的5分钟移动平均价格
+stock_moving_avg = (
+    stock_stream
+    .key_by(lambda stock: stock[0])  # 按股票代码分组
+    .window(SlidingEventTimeWindows.of(Time.minutes(5), Time.minutes(1)))
+    .aggregate(
+        # 聚合函数 - 累加价格和数量
+        lambda acc, value: (value[0], acc[1] + value[1], acc[2] + 1, value[3]),
+        # 初始累加器 - (股票代码, 总价格, 计数, 时间戳)
+        lambda: ("", 0.0, 0, 0),
+        # 结果函数 - 计算平均值
+        lambda acc: (acc[0], acc[1] / acc[2], acc[3])
+    )
+)
+
+# 3. 检测价格在短时间内波动超过5%的股票
+# 使用3分钟滑动窗口，检测价格最大波动
+price_volatility = (
+    stock_stream
+    .key_by(lambda stock: stock[0])  # 按股票代码分组
+    .window(SlidingEventTimeWindows.of(Time.minutes(3), Time.minutes(1)))
+    .process(
+        lambda key, context, elements, out: (
+            # 计算窗口内最高和最低价格
+            high_price := max(e[1] for e in elements),
+            low_price := min(e[1] for e in elements),
+            # 计算价格波动百分比
+            volatility := (high_price - low_price) / low_price * 100,
+            # 正常输出价格波动
+            out.collect((key, high_price, low_price, volatility, context.window().end)),
+            # 如果波动超过5%，输出到侧输出流
+            out.collect_to_side_output(price_alert_tag, (key, high_price, low_price, context.window().end))
+            if volatility > 5.0 else None
+        )
+    )
+)
+
+# 获取价格异常警报
+price_alerts = price_volatility.get_side_output(price_alert_tag)
+
+# 打印结果
+stock_hloc.print("Stock HLOC (1min)")
+stock_moving_avg.print("Stock Moving Avg (5min)")
+price_alerts.print("Price Volatility Alerts (>5%)")
+
+# 执行作业
+env.execute("Stock Market Real-time Analysis")
+</pre>
+                        </div>
+                    </div>
+
+                    <footer>
+                        <p>© 2023 PyFlink DataStream 编程指南 | Apache Flink 是 Apache 软件基金会的注册商标</p>
+                    </footer>
+                </body>
+                </html>
