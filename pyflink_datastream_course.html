@@ -603,43 +603,43 @@
             </div>
             
             <pre>
-                from pyflink.datastream import StreamExecutionEnvironment
-                from pyflink.datastream.window import TumblingEventTimeWindows
-                from pyflink.common.time import Time
-                from pyflink.common import WatermarkStrategy, Time, Types
-                from pyflink.common.watermark_strategy import TimestampAssigner
-                
-                env = StreamExecutionEnvironment.get_execution_environment()
-                env.set_parallelism(1)
-                
-                # 创建数据流并添加时间戳和水位线
-                data_stream = env.from_collection([("A", 1, 1000), ("A", 2, 2000), ("B", 3, 3000)],
-                                                 type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
-                
-                # 提取时间戳并添加水位线
-                class MyTimestampAssigner(TimestampAssigner):
-                    def extract_timestamp(self, value, record_timestamp):
-                        # 第三个字段是事件时间戳（毫秒）
-                        return value[2]
-                
-                watermark_strategy = (
-                    WatermarkStrategy
-                    .for_bounded_out_of_orderness(Time.milliseconds(500))
-                    .with_timestamp_assigner(MyTimestampAssigner())
-                )
-                
-                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
-                
-                # 按key分组并应用滚动窗口
-                result = (
-                    data_stream
-                    .key_by(lambda x: x[0])  # 按第一个字段(key)分组
-                    .window(TumblingEventTimeWindows.of(Time.seconds(5)))  # 5秒滚动窗口
-                    .sum(1)  # 对第二个字段求和
-                )
-                
-                result.print()
-                env.execute("Tumbling Window Example")
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.datastream.window import TumblingEventTimeWindows
+from pyflink.common.time import Time
+from pyflink.common import WatermarkStrategy, Time, Types
+from pyflink.common.watermark_strategy import TimestampAssigner
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建数据流并添加时间戳和水位线
+data_stream = env.from_collection([("A", 1, 1000), ("A", 2, 2000), ("B", 3, 3000)],
+                                 type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
+
+# 提取时间戳并添加水位线
+class MyTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        # 第三个字段是事件时间戳（毫秒）
+        return value[2]
+
+watermark_strategy = (
+    WatermarkStrategy
+    .for_bounded_out_of_orderness(Time.milliseconds(500))
+    .with_timestamp_assigner(MyTimestampAssigner())
+)
+
+data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 按key分组并应用滚动窗口
+result = (
+    data_stream
+    .key_by(lambda x: x[0])  # 按第一个字段(key)分组
+    .window(TumblingEventTimeWindows.of(Time.seconds(5)))  # 5秒滚动窗口
+    .sum(1)  # 对第二个字段求和
+)
+
+result.print()
+env.execute("Tumbling Window Example")
                 </pre>
                 
                             <div class="note">
@@ -668,41 +668,41 @@
                             </div>
                             
                             <pre>
-                from pyflink.datastream import StreamExecutionEnvironment
-                from pyflink.datastream.window import SlidingEventTimeWindows
-                from pyflink.common import WatermarkStrategy, Time, Types
-                from pyflink.common.watermark_strategy import TimestampAssigner
-                
-                env = StreamExecutionEnvironment.get_execution_environment()
-                env.set_parallelism(1)
-                
-                # 创建数据流
-                data_stream = env.from_collection([("A", 1, 1000), ("A", 2, 2000), ("A", 3, 5000), ("B", 1, 6000)],
-                                                 type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
-                
-                # 提取时间戳并添加水位线
-                class MyTimestampAssigner(TimestampAssigner):
-                    def extract_timestamp(self, value, record_timestamp):
-                        return value[2]
-                
-                watermark_strategy = (
-                    WatermarkStrategy
-                    .for_bounded_out_of_orderness(Time.milliseconds(500))
-                    .with_timestamp_assigner(MyTimestampAssigner())
-                )
-                
-                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
-                
-                # 应用滑动窗口: 窗口大小5秒，滑动间隔2秒
-                result = (
-                    data_stream
-                    .key_by(lambda x: x[0])
-                    .window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(2)))
-                    .sum(1)
-                )
-                
-                result.print()
-                env.execute("Sliding Window Example")
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.datastream.window import SlidingEventTimeWindows
+from pyflink.common import WatermarkStrategy, Time, Types
+from pyflink.common.watermark_strategy import TimestampAssigner
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建数据流
+data_stream = env.from_collection([("A", 1, 1000), ("A", 2, 2000), ("A", 3, 5000), ("B", 1, 6000)],
+                                 type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
+
+# 提取时间戳并添加水位线
+class MyTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        return value[2]
+
+watermark_strategy = (
+    WatermarkStrategy
+    .for_bounded_out_of_orderness(Time.milliseconds(500))
+    .with_timestamp_assigner(MyTimestampAssigner())
+)
+
+data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 应用滑动窗口: 窗口大小5秒，滑动间隔2秒
+result = (
+    data_stream
+    .key_by(lambda x: x[0])
+    .window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(2)))
+    .sum(1)
+)
+
+result.print()
+env.execute("Sliding Window Example")
                 </pre>
                 
                             <div class="note">
@@ -730,54 +730,54 @@
                             </div>
                             
                             <pre>
-                from pyflink.datastream import StreamExecutionEnvironment
-                from pyflink.datastream.window import EventTimeSessionWindows
-                from pyflink.common import WatermarkStrategy, Time, Types
-                from pyflink.common.watermark_strategy import TimestampAssigner
-                
-                env = StreamExecutionEnvironment.get_execution_environment()
-                env.set_parallelism(1)
-                
-                # 创建数据流 - 模拟用户会话活动
-                data_stream = env.from_collection([
-                    # 用户A的第一个会话
-                    ("A", 1, 1000),  # 会话开始
-                    ("A", 2, 3000),  # 2秒后的活动
-                    ("A", 3, 4000),  # 1秒后的活动
-                    
-                    # 用户A的第二个会话（与前一个间隔大）
-                    ("A", 4, 15000),  # 11秒后开始新会话
-                    ("A", 5, 16000),  # 1秒后的活动
-                    
-                    # 用户B的会话
-                    ("B", 1, 5000),
-                    ("B", 2, 7000)
-                ],
-                type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
-                
-                # 提取时间戳并添加水位线
-                class MyTimestampAssigner(TimestampAssigner):
-                    def extract_timestamp(self, value, record_timestamp):
-                        return value[2]
-                
-                watermark_strategy = (
-                    WatermarkStrategy
-                    .for_bounded_out_of_orderness(Time.milliseconds(500))
-                    .with_timestamp_assigner(MyTimestampAssigner())
-                )
-                
-                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
-                
-                # 应用会话窗口: 会话间隔为5秒
-                result = (
-                    data_stream
-                    .key_by(lambda x: x[0])
-                    .window(EventTimeSessionWindows.withGap(Time.seconds(5)))
-                    .sum(1)
-                )
-                
-                result.print()
-                env.execute("Session Window Example")
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.datastream.window import EventTimeSessionWindows
+from pyflink.common import WatermarkStrategy, Time, Types
+from pyflink.common.watermark_strategy import TimestampAssigner
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建数据流 - 模拟用户会话活动
+data_stream = env.from_collection([
+    # 用户A的第一个会话
+    ("A", 1, 1000),  # 会话开始
+    ("A", 2, 3000),  # 2秒后的活动
+    ("A", 3, 4000),  # 1秒后的活动
+
+    # 用户A的第二个会话（与前一个间隔大）
+    ("A", 4, 15000),  # 11秒后开始新会话
+    ("A", 5, 16000),  # 1秒后的活动
+
+    # 用户B的会话
+    ("B", 1, 5000),
+    ("B", 2, 7000)
+],
+type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
+
+# 提取时间戳并添加水位线
+class MyTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        return value[2]
+
+watermark_strategy = (
+    WatermarkStrategy
+    .for_bounded_out_of_orderness(Time.milliseconds(500))
+    .with_timestamp_assigner(MyTimestampAssigner())
+)
+
+data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 应用会话窗口: 会话间隔为5秒
+result = (
+    data_stream
+    .key_by(lambda x: x[0])
+    .window(EventTimeSessionWindows.withGap(Time.seconds(5)))
+    .sum(1)
+)
+
+result.print()
+env.execute("Session Window Example")
                 </pre>
                 
                             <div class="note">
@@ -802,29 +802,29 @@
                             </div>
                             
                             <pre>
-                from pyflink.datastream import StreamExecutionEnvironment
-                from pyflink.datastream.window import GlobalWindows
-                from pyflink.datastream.window.trigger import CountTrigger
-                from pyflink.common import Types
-                
-                env = StreamExecutionEnvironment.get_execution_environment()
-                env.set_parallelism(1)
-                
-                # 创建数据流
-                data_stream = env.from_collection([("A", 1), ("A", 2), ("B", 3), ("B", 4), ("A", 5)],
-                                                 type_info=Types.TUPLE([Types.STRING(), Types.INT()]))
-                
-                # 应用全局窗口并设置计数触发器
-                result = (
-                    data_stream
-                    .key_by(lambda x: x[0])
-                    .window(GlobalWindows.create())
-                    .trigger(CountTrigger.of(2))  # 每收集到2个元素触发一次计算
-                    .sum(1)
-                )
-                
-                result.print()
-                env.execute("Global Window Example")
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.datastream.window import GlobalWindows
+from pyflink.datastream.window.trigger import CountTrigger
+from pyflink.common import Types
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建数据流
+data_stream = env.from_collection([("A", 1), ("A", 2), ("B", 3), ("B", 4), ("A", 5)],
+                                 type_info=Types.TUPLE([Types.STRING(), Types.INT()]))
+
+# 应用全局窗口并设置计数触发器
+result = (
+    data_stream
+    .key_by(lambda x: x[0])
+    .window(GlobalWindows.create())
+    .trigger(CountTrigger.of(2))  # 每收集到2个元素触发一次计算
+    .sum(1)
+)
+
+result.print()
+env.execute("Global Window Example")
                 </pre>
                 
                             <div class="note">
@@ -954,52 +954,52 @@
                             </div>
                             
                             <pre>
-                from pyflink.common import WatermarkStrategy, Time, Types
-                from pyflink.common.watermark_strategy import TimestampAssigner
-                from pyflink.datastream import StreamExecutionEnvironment
-                from pyflink.datastream.window import TumblingEventTimeWindows
-                
-                env = StreamExecutionEnvironment.get_execution_environment()
-                env.set_parallelism(1)
-                
-                # 创建数据流
-                data_stream = env.from_collection([
-                    ("sensor1", 20.0, 1618953000000),  # 2021-04-21 02:30:00
-                    ("sensor1", 21.5, 1618953300000),  # 2021-04-21 02:35:00
-                    ("sensor1", 18.5, 1618952700000),  # 2021-04-21 02:25:00 (乱序事件)
-                    ("sensor1", 22.0, 1618953600000),  # 2021-04-21 02:40:00
-                    ("sensor2", 30.5, 1618953000000),  # 2021-04-21 02:30:00
-                    ("sensor2", 31.0, 1618953600000),  # 2021-04-21 02:40:00
-                ],
-                type_info=Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
-                
-                # 定义时间戳提取器
-                class MyTimestampAssigner(TimestampAssigner):
-                    def extract_timestamp(self, value, record_timestamp):
-                        return value[2]  # 使用第三个字段作为事件时间戳
-                
-                # 为乱序事件定义水位线策略，设置最大延迟为5分钟
-                watermark_strategy = (
-                    WatermarkStrategy
-                    .for_bounded_out_of_orderness(Time.minutes(5))  # 最大容忍5分钟的乱序
-                    .with_timestamp_assigner(MyTimestampAssigner())
-                )
-                
-                # 应用水位线策略
-                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
-                
-                # 使用滚动窗口聚合
-                result = (
-                    data_stream
-                    .key_by(lambda x: x[0])  # 按传感器ID分组
-                    .window(TumblingEventTimeWindows.of(Time.minutes(10)))  # 10分钟滚动窗口
-                    .aggregate(lambda acc, value: (value[0], acc[1] + value[1], acc[2] + 1),  # 计算温度总和和计数
-                              lambda: ("", 0.0, 0),  # 初始累加器
-                              lambda acc: (acc[0], acc[1] / acc[2]))  # 计算平均温度
-                )
-                
-                result.print()
-                env.execute("Watermark Example")
+from pyflink.common import WatermarkStrategy, Time, Types
+from pyflink.common.watermark_strategy import TimestampAssigner
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.datastream.window import TumblingEventTimeWindows
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建数据流
+data_stream = env.from_collection([
+    ("sensor1", 20.0, 1618953000000),  # 2021-04-21 02:30:00
+    ("sensor1", 21.5, 1618953300000),  # 2021-04-21 02:35:00
+    ("sensor1", 18.5, 1618952700000),  # 2021-04-21 02:25:00 (乱序事件)
+    ("sensor1", 22.0, 1618953600000),  # 2021-04-21 02:40:00
+    ("sensor2", 30.5, 1618953000000),  # 2021-04-21 02:30:00
+    ("sensor2", 31.0, 1618953600000),  # 2021-04-21 02:40:00
+],
+type_info=Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
+
+# 定义时间戳提取器
+class MyTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        return value[2]  # 使用第三个字段作为事件时间戳
+
+# 为乱序事件定义水位线策略，设置最大延迟为5分钟
+watermark_strategy = (
+    WatermarkStrategy
+    .for_bounded_out_of_orderness(Time.minutes(5))  # 最大容忍5分钟的乱序
+    .with_timestamp_assigner(MyTimestampAssigner())
+)
+
+# 应用水位线策略
+data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 使用滚动窗口聚合
+result = (
+    data_stream
+    .key_by(lambda x: x[0])  # 按传感器ID分组
+    .window(TumblingEventTimeWindows.of(Time.minutes(10)))  # 10分钟滚动窗口
+    .aggregate(lambda acc, value: (value[0], acc[1] + value[1], acc[2] + 1),  # 计算温度总和和计数
+              lambda: ("", 0.0, 0),  # 初始累加器
+              lambda acc: (acc[0], acc[1] / acc[2]))  # 计算平均温度
+)
+
+result.print()
+env.execute("Watermark Example")
                 </pre>
                         </div>
                 
@@ -1031,57 +1031,57 @@
                             </div>
                             
                             <pre>
-                from pyflink.datastream import StreamExecutionEnvironment, OutputTag
-                from pyflink.datastream.window import TumblingEventTimeWindows
-                from pyflink.common import WatermarkStrategy, Time, Types
-                from pyflink.common.watermark_strategy import TimestampAssigner
-                
-                env = StreamExecutionEnvironment.get_execution_environment()
-                env.set_parallelism(1)
-                
-                # 创建数据流
-                data_stream = env.from_collection([
-                    ("sensor1", 20.0, 1618953000000),  # 正常事件
-                    ("sensor1", 21.5, 1618953300000),  # 正常事件
-                    ("sensor1", 18.5, 1618952700000),  # 略微延迟的事件
-                    ("sensor1", 22.0, 1618953600000),  # 正常事件
-                    ("sensor1", 17.5, 1618951800000),  # 严重延迟的事件
-                ],
-                type_info=Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
-                
-                # 设置时间戳提取器和水位线生成器
-                class MyTimestampAssigner(TimestampAssigner):
-                    def extract_timestamp(self, value, record_timestamp):
-                        return value[2]
-                
-                watermark_strategy = (
-                    WatermarkStrategy
-                    .for_bounded_out_of_orderness(Time.seconds(30))  # 允许30秒的乱序
-                    .with_timestamp_assigner(MyTimestampAssigner())
-                )
-                
-                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
-                
-                # 定义迟到数据的侧输出标签
-                late_output_tag = OutputTag("late-data", Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
-                
-                # 应用窗口操作
-                main_stream = (
-                    data_stream
-                    .key_by(lambda x: x[0])
-                    .window(TumblingEventTimeWindows.of(Time.minutes(10)))
-                    .allowed_lateness(Time.minutes(1))  # 允许1分钟的迟到
-                    .side_output_late_data(late_output_tag)  # 将超过允许迟到时间的数据发送到侧输出
-                    .aggregate(lambda acc, value: (value[0], acc[1] + value[1], acc[2] + 1),
-                              lambda: ("", 0.0, 0),
-                              lambda acc: (acc[0], acc[1] / acc[2]))
-                )
-                
-                # 获取主流和迟到数据流
-                main_stream.print("Main Output")
-                main_stream.get_side_output(late_output_tag).print("Late Data")
-                
-                env.execute("Late Data Handling Example")
+from pyflink.datastream import StreamExecutionEnvironment, OutputTag
+from pyflink.datastream.window import TumblingEventTimeWindows
+from pyflink.common import WatermarkStrategy, Time, Types
+from pyflink.common.watermark_strategy import TimestampAssigner
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)
+
+# 创建数据流
+data_stream = env.from_collection([
+    ("sensor1", 20.0, 1618953000000),  # 正常事件
+    ("sensor1", 21.5, 1618953300000),  # 正常事件
+    ("sensor1", 18.5, 1618952700000),  # 略微延迟的事件
+    ("sensor1", 22.0, 1618953600000),  # 正常事件
+    ("sensor1", 17.5, 1618951800000),  # 严重延迟的事件
+],
+type_info=Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
+
+# 设置时间戳提取器和水位线生成器
+class MyTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        return value[2]
+
+watermark_strategy = (
+    WatermarkStrategy
+    .for_bounded_out_of_orderness(Time.seconds(30))  # 允许30秒的乱序
+    .with_timestamp_assigner(MyTimestampAssigner())
+)
+
+data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 定义迟到数据的侧输出标签
+late_output_tag = OutputTag("late-data", Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
+
+# 应用窗口操作
+main_stream = (
+    data_stream
+    .key_by(lambda x: x[0])
+    .window(TumblingEventTimeWindows.of(Time.minutes(10)))
+    .allowed_lateness(Time.minutes(1))  # 允许1分钟的迟到
+    .side_output_late_data(late_output_tag)  # 将超过允许迟到时间的数据发送到侧输出
+    .aggregate(lambda acc, value: (value[0], acc[1] + value[1], acc[2] + 1),
+              lambda: ("", 0.0, 0),
+              lambda acc: (acc[0], acc[1] / acc[2]))
+)
+
+# 获取主流和迟到数据流
+main_stream.print("Main Output")
+main_stream.get_side_output(late_output_tag).print("Late Data")
+
+env.execute("Late Data Handling Example")
                 </pre>
                             
                             <div class="note">
@@ -1185,68 +1185,68 @@
                             <div class="api-box">
                                 <div class="api-name">组合使用示例</div>
                                 <pre>
-                from pyflink.datastream import StreamExecutionEnvironment
-                from pyflink.datastream.window import TumblingEventTimeWindows
-                from pyflink.datastream.functions import ReduceFunction, ProcessWindowFunction
-                from pyflink.common import WatermarkStrategy, Time, Types
-                from pyflink.common.watermark_strategy import TimestampAssigner
-                
-                env = StreamExecutionEnvironment.get_execution_environment()
-                
-                # 定义数据源
-                data_stream = env.from_collection([
-                    ("user1", "click", 1618953000000),
-                    ("user1", "scroll", 1618953010000),
-                    ("user2", "click", 1618953005000),
-                    ("user1", "click", 1618953020000),
-                    ("user2", "scroll", 1618953015000),
-                    ("user2", "click", 1618953025000),
-                ],
-                type_info=Types.TUPLE([Types.STRING(), Types.STRING(), Types.LONG()]))
-                
-                # 时间戳分配
-                class MyTimestampAssigner(TimestampAssigner):
-                    def extract_timestamp(self, value, record_timestamp):
-                        return value[2]
-                
-                watermark_strategy = WatermarkStrategy.for_monotonous_timestamps() \
-                    .with_timestamp_assigner(MyTimestampAssigner())
-                
-                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
-                
-                # 定义Reduce函数和ProcessWindow函数
-                class CountReduce(ReduceFunction):
-                    def reduce(self, value1, value2):
-                        # 第一个元素保持不变，第二个元素保存动作类型，第三个元素计数
-                        return (value1[0], value1[1], value1[2] + 1)
-                
-                class WindowResult(ProcessWindowFunction):
-                    def process(self, key, context, elements, collector):
-                        # 从reduce输出提取数据
-                        reduced = next(iter(elements))
-                        user = reduced[0]
-                        action = reduced[1]
-                        count = reduced[2]
-                        
-                        # 获取窗口信息
-                        window_start = context.window().start
-                        window_end = context.window().end
-                        
-                        # 输出结果
-                        collector.collect((user, action, count, window_start, window_end))
-                
-                # 转换数据流格式以适应Reduce函数
-                mapped_stream = data_stream.map(lambda x: (x[0], x[1], 1),
-                                               output_type=Types.TUPLE([Types.STRING(), Types.STRING(), Types.INT()]))
-                
-                # 应用窗口操作，先reduce再process
-                result = mapped_stream \
-                    .key_by(lambda x: x[0]) \
-                    .window(TumblingEventTimeWindows.of(Time.seconds(10))) \
-                    .reduce(CountReduce(), WindowResult())
-                
-                result.print()
-                env.execute("Combined Window Functions Example")
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.datastream.window import TumblingEventTimeWindows
+from pyflink.datastream.functions import ReduceFunction, ProcessWindowFunction
+from pyflink.common import WatermarkStrategy, Time, Types
+from pyflink.common.watermark_strategy import TimestampAssigner
+
+env = StreamExecutionEnvironment.get_execution_environment()
+
+# 定义数据源
+data_stream = env.from_collection([
+    ("user1", "click", 1618953000000),
+    ("user1", "scroll", 1618953010000),
+    ("user2", "click", 1618953005000),
+    ("user1", "click", 1618953020000),
+    ("user2", "scroll", 1618953015000),
+    ("user2", "click", 1618953025000),
+],
+type_info=Types.TUPLE([Types.STRING(), Types.STRING(), Types.LONG()]))
+
+# 时间戳分配
+class MyTimestampAssigner(TimestampAssigner):
+    def extract_timestamp(self, value, record_timestamp):
+        return value[2]
+
+watermark_strategy = WatermarkStrategy.for_monotonous_timestamps() \
+    .with_timestamp_assigner(MyTimestampAssigner())
+
+data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+
+# 定义Reduce函数和ProcessWindow函数
+class CountReduce(ReduceFunction):
+    def reduce(self, value1, value2):
+        # 第一个元素保持不变，第二个元素保存动作类型，第三个元素计数
+        return (value1[0], value1[1], value1[2] + 1)
+
+class WindowResult(ProcessWindowFunction):
+    def process(self, key, context, elements, collector):
+        # 从reduce输出提取数据
+        reduced = next(iter(elements))
+        user = reduced[0]
+        action = reduced[1]
+        count = reduced[2]
+
+        # 获取窗口信息
+        window_start = context.window().start
+        window_end = context.window().end
+
+        # 输出结果
+        collector.collect((user, action, count, window_start, window_end))
+
+# 转换数据流格式以适应Reduce函数
+mapped_stream = data_stream.map(lambda x: (x[0], x[1], 1),
+                               output_type=Types.TUPLE([Types.STRING(), Types.STRING(), Types.INT()]))
+
+# 应用窗口操作，先reduce再process
+result = mapped_stream \
+    .key_by(lambda x: x[0]) \
+    .window(TumblingEventTimeWindows.of(Time.seconds(10))) \
+    .reduce(CountReduce(), WindowResult())
+
+result.print()
+env.execute("Combined Window Functions Example")
                 </pre>
                             </div>
                         </div>
