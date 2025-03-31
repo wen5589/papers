@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyFlink DataStream 编程指南</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #e74c3c;
+            --text-color: #333;
+            --light-bg: #f5f5f5;
+            --code-bg: #f8f9fa;
+            --border-color: #ddd;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 1.8em;
+            margin: 30px 0 15px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+        
+        h3 {
+            font-size: 1.4em;
+            margin: 25px 0 10px;
+            color: var(--secondary-color);
+        }
+        
+        h4 {
+            font-size: 1.2em;
+            margin: 20px 0 10px;
+            color: var(--text-color);
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subsection {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--light-bg);
+            border-radius: 6px;
+        }
+        
+        .api-box {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+        }
+        
+        .api-name {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1em;
+        }
+        
+        .api-signature {
+            font-family: monospace;
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 5px;
+            border-radius: 3px;
+            margin: 5px 0;
+            overflow-x: auto;
+        }
+        
+        .api-description {
+            margin: 10px 0;
+        }
+        
+        pre {
+            background-color: var(--code-bg);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--code-bg);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .exercise {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+        }
+        
+        .exercise-title {
+            font-weight: bold;
+            color: #ff9800;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        
+        .note {
+            background-color: #e8f5e9;
+            padding: 10px 15px;
+            border-left: 4px solid var(--secondary-color);
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background-color: #ffebee;
+            padding: 10px 15px;
+            border-left: 4px solid var(--accent-color);
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--light-bg);
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: var(--light-bg);
+        }
+        
+        .image-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .toc {
+            background-color: var(--light-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        
+        .toc-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .toc ul {
+            list-style-type: none;
+            padding-left: 15px;
+        }
+        
+        .toc li {
+            margin-bottom: 5px;
+        }
+        
+        .toc a {
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        footer {
+            margin-top: 50px;
+            padding: 20px;
+            text-align: center;
+            background-color: var(--light-bg);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PyFlink DataStream 编程指南</h1>
+        <p>时间概念、窗口计算、窗口划分、水位线及相关 API</p>
+    </header>
+
+    <div class="toc">
+        <div class="toc-title">目录</div>
+        <ul>
+            <li><a href="#introduction">1. 引言</a></li>
+            <li><a href="#time-concepts">2. DataStream 时间概念</a>
+                <ul>
+                    <li><a href="#event-time">2.1 事件时间 (Event Time)</a></li>
+                    <li><a href="#processing-time">2.2 处理时间 (Processing Time)</a></li>
+                    <li><a href="#ingestion-time">2.3 摄入时间 (Ingestion Time)</a></li>
+                </ul>
+            </li>
+            <li><a href="#windows">3. 窗口计算 (Windows)</a>
+                <ul>
+                    <li><a href="#window-types">3.1 窗口类型</a></li>
+                    <li><a href="#window-functions">3.2 窗口函数</a></li>
+                </ul>
+            </li>
+            <li><a href="#window-assigners">4. 窗口的划分 (Window Assigners)</a>
+                <ul>
+                    <li><a href="#tumbling-windows">4.1 滚动窗口 (Tumbling Windows)</a></li>
+                    <li><a href="#sliding-windows">4.2 滑动窗口 (Sliding Windows)</a></li>
+                    <li><a href="#session-windows">4.3 会话窗口 (Session Windows)</a></li>
+                    <li><a href="#global-windows">4.4 全局窗口 (Global Windows)</a></li>
+                </ul>
+            </li>
+            <li><a href="#watermarks">5. 水位线 (Watermarks)</a>
+                <ul>
+                    <li><a href="#watermark-strategies">5.1 水位线生成策略</a></li>
+                    <li><a href="#watermark-use-cases">5.2 水位线使用场景</a></li>
+                </ul>
+            </li>
+            <li><a href="#api-examples">6. API 详解与示例</a>
+                <ul>
+                    <li><a href="#time-apis">6.1 时间相关 API</a></li>
+                    <li><a href="#window-apis">6.2 窗口相关 API</a></li>
+                    <li><a href="#watermark-apis">6.3 水位线相关 API</a></li>
+                </ul>
+            </li>
+            <li><a href="#exercises">7. 综合练习</a></li>
+        </ul>
+    </div>
+
+    <div id="introduction" class="section">
+        <h2>1. 引言</h2>
+        <p>Apache Flink 是一个分布式流处理和批处理统一计算框架，而 PyFlink 则是其 Python API，允许用户使用 Python 编写 Flink 程序。本课件重点介绍 PyFlink 中的 DataStream API，特别是流处理中的时间概念、窗口计算、窗口划分和水位线机制。</p>
+        
+        <p>通过本课件，您将了解：</p>
+        <ul>
+            <li>流处理中的不同时间概念及其适用场景</li>
+            <li>窗口计算的基本原理和类型</li>
+            <li>不同类型窗口的划分方法</li>
+            <li>水位线机制如何解决事件时间下的数据乱序问题</li>
+            <li>如何使用 PyFlink API 实现上述功能</li>
+        </ul>
+    </div>
+
+    <div id="time-concepts" class="section">
+        <h2>2. DataStream 时间概念</h2>
+        
+        <p>在流处理中，"时间"是一个核心概念。Flink 支持三种不同的时间概念，用于定义何时触发计算并处理流中的数据：</p>
+
+        <div class="image-container">
+            <svg width="800" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                <rect x="50" y="40" width="700" height="220" fill="#f0f8ff" stroke="#3498db" stroke-width="2" rx="10" />
+                
+                <!-- 标题 -->
+                <text x="400" y="25" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">Flink 中的三种时间概念</text>
+                
+                <!-- 事件时间 -->
+                <rect x="80" y="70" width="200" height="160" fill="#e8f4fc" stroke="#3498db" stroke-width="2" rx="5" />
+                <text x="180" y="95" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">事件时间 (Event Time)</text>
+                <text x="180" y="125" font-family="Arial" font-size="12" text-anchor="middle">数据产生的时间</text>
+                <text x="180" y="150" font-family="Arial" font-size="12" text-anchor="middle" width="180">由事件本身携带的时间戳</text>
+                <text x="180" y="175" font-family="Arial" font-size="12" text-anchor="middle">不受网络延迟等因素影响</text>
+                <text x="180" y="200" font-family="Arial" font-size="12" text-anchor="middle">需要处理乱序数据问题</text>
+                
+                <!-- 处理时间 -->
+                <rect x="300" y="70" width="200" height="160" fill="#f0fff0" stroke="#2ecc71" stroke-width="2" rx="5" />
+                <text x="400" y="95" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">处理时间 (Processing Time)</text>
+                <text x="400" y="125" font-family="Arial" font-size="12" text-anchor="middle">数据被处理的时间</text>
+                <text x="400" y="150" font-family="Arial" font-size="12" text-anchor="middle">由处理算子所在机器的时钟决定</text>
+                <text x="400" y="175" font-family="Arial" font-size="12" text-anchor="middle">性能最好，延迟最低</text>
+                <text x="400" y="200" font-family="Arial" font-size="12" text-anchor="middle">不确定性高，不保证结果一致</text>
+                
+                <!-- 摄入时间 -->
+                <rect x="520" y="70" width="200" height="160" fill="#fff5e6" stroke="#f39c12" stroke-width="2" rx="5" />
+                <text x="620" y="95" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">摄入时间 (Ingestion Time)</text>
+                <text x="620" y="125" font-family="Arial" font-size="12" text-anchor="middle">数据进入Flink的时间</text>
+                <text x="620" y="150" font-family="Arial" font-size="12" text-anchor="middle">由Source算子为数据分配时间戳</text>
+                <text x="620" y="175" font-family="Arial" font-size="12" text-anchor="middle">介于事件时间和处理时间之间</text>
+                <text x="620" y="200" font-family="Arial" font-size="12" text-anchor="middle">不需要显式提取事件时间</text>
+            </svg>
+        </div>
+
+        <div id="event-time" class="subsection">
+            <h3>2.1 事件时间 (Event Time)</h3>
+            <p>事件时间是指事件实际发生的时间，通常由数据本身携带的时间戳表示。这是最符合现实业务场景的时间概念，因为它独立于数据到达和处理的时间。</p>
+            
+            <div class="api-box">
+                <div class="api-name">设置事件时间</div>
+                <div class="api-signature">env.set_stream_time_characteristic(TimeCharacteristic.EventTime)</div>
+                <div class="api-description">
+                    将 Flink 作业的时间特性设置为事件时间。这是在 Flink 1.12 之前的版本中使用的方法。从 Flink 1.12 开始，事件时间是默认时间特性。
+                </div>
+            </div>
+            
+            <div class="note">
+                <strong>注意：</strong> 使用事件时间需要为数据流定义水位线生成策略，以处理可能出现的乱序数据问题。
+            </div>
+        </div>
+
+        <div id="processing-time" class="subsection">
+            <h3>2.2 处理时间 (Processing Time)</h3>
+            <p>处理时间是指数据被处理时，处理算子所在机器的系统时间。这是最简单的时间概念，不需要特殊的时间戳提取或水位线生成，但结果可能因处理速度不同而变化。</p>
+            
+            <div class="api-box">
+                <div class="api-name">设置处理时间</div>
+                <div class="api-signature">env.set_stream_time_characteristic(TimeCharacteristic.ProcessingTime)</div>
+                <div class="api-description">
+                    将 Flink 作业的时间特性设置为处理时间。
+                </div>
+            </div>
+            
+            <div class="note">
+                <strong>注意：</strong> 处理时间提供最低的延迟，但不保证结果的一致性和可重现性，因为它依赖于系统时钟和处理速度。
+            </div>
+        </div>
+
+        <div id="ingestion-time" class="subsection">
+            <h3>2.3 摄入时间 (Ingestion Time)</h3>
+            <p>摄入时间是数据进入 Flink 系统的时间，即数据被 Source 算子接收的时间。它是事件时间和处理时间的折中方案，为每条记录自动分配时间戳，但仍受系统时钟影响。</p>
+            
+            <div class="api-box">
+                <div class="api-name">设置摄入时间</div>
+                <div class="api-signature">env.set_stream_time_characteristic(TimeCharacteristic.IngestionTime)</div>
+                <div class="api-description">
+                    将 Flink 作业的时间特性设置为摄入时间。
+                </div>
+            </div>
+            
+            <div class="note">
+                <strong>注意：</strong> 摄入时间会自动为数据分配时间戳并定期生成水位线，无需用户手动指定。
+            </div>
+        </div>
+    </div>
+
+    <div id="windows" class="section">
+        <h2>3. 窗口计算 (Windows)</h2>
+        
+        <p>流处理通常需要对无界数据进行聚合计算，而窗口是将无限流划分为有限集合的一种机制，使我们可以对这些有限集合应用计算。</p>
+
+        <div class="image-container">
+            <svg width="800" height="350" viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg">
+                <!-- 背景 -->
+                <rect x="50" y="40" width="700" height="280" fill="#f5f5f5" stroke="#cccccc" stroke-width="2" rx="10" />
+                
+                <!-- 标题 -->
+                <text x="400" y="25" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">窗口计算基本流程</text>
+                
+                <!-- 流数据 -->
+                <line x1="100" y1="100" x2="700" y2="100" stroke="#3498db" stroke-width="3" />
+                
+                <!-- 数据点 -->
+                <circle cx="150" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="180" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="230" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="300" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="350" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="420" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="490" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="550" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="610" cy="100" r="8" fill="#e74c3c" />
+                <circle cx="650" cy="100" r="8" fill="#e74c3c" />
+                
+                <!-- 窗口分组 -->
+                <rect x="120" y="130" width="160" height="40" fill="#2ecc71" fill-opacity="0.3" stroke="#2ecc71" stroke-width="2" rx="5" />
+                <rect x="280" y="130" width="160" height="40" fill="#3498db" fill-opacity="0.3" stroke="#3498db" stroke-width="2" rx="5" />
+                <rect x="440" y="130" width="160" height="40" fill="#f1c40f" fill-opacity="0.3" stroke="#f1c40f" stroke-width="2" rx="5" />
+                <rect x="600" y="130" width="80" height="40" fill="#9b59b6" fill-opacity="0.3" stroke="#9b59b6" stroke-width="2" rx="5" />
+                
+                <!-- 窗口标签 -->
+                <text x="200" y="155" font-family="Arial" font-size="12" text-anchor="middle">窗口 1</text>
+                <text x="360" y="155" font-family="Arial" font-size="12" text-anchor="middle">窗口 2</text>
+                <text x="520" y="155" font-family="Arial" font-size="12" text-anchor="middle">窗口 3</text>
+                <text x="640" y="155" font-family="Arial" font-size="12" text-anchor="middle">窗口 4</text>
+                
+                <!-- 窗口计算 -->
+                <rect x="120" y="200" width="160" height="60" fill="#2ecc71" fill-opacity="0.2" stroke="#2ecc71" stroke-width="2" rx="5" />
+                <rect x="280" y="200" width="160" height="60" fill="#3498db" fill-opacity="0.2" stroke="#3498db" stroke-width="2" rx="5" />
+                <rect x="440" y="200" width="160" height="60" fill="#f1c40f" fill-opacity="0.2" stroke="#f1c40f" stroke-width="2" rx="5" />
+                <rect x="600" y="200" width="80" height="60" fill="#9b59b6" fill-opacity="0.2" stroke="#9b59b6" stroke-width="2" rx="5" />
+                
+                <!-- 计算标签 -->
+                <text x="200" y="230" font-family="Arial" font-size="12" text-anchor="middle">聚合计算</text>
+                <text x="360" y="230" font-family="Arial" font-size="12" text-anchor="middle">聚合计算</text>
+                <text x="520" y="230" font-family="Arial" font-size="12" text-anchor="middle">聚合计算</text>
+                <text x="640" y="230" font-family="Arial" font-size="12" text-anchor="middle">聚合计算</text>
+                
+                <!-- 结果 -->
+                <rect x="100" y="290" width="600" height="40" fill="#3498db" fill-opacity="0.1" stroke="#3498db" stroke-width="2" rx="5" />
+                <text x="400" y="315" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">聚合结果</text>
+                
+                <!-- 箭头 -->
+                <line x1="200" y1="170" x2="200" y2="200" stroke="#2ecc71" stroke-width="2" marker-end="url(#arrowhead)" />
+                <line x1="360" y1="170" x2="360" y2="200" stroke="#3498db" stroke-width="2" marker-end="url(#arrowhead)" />
+                <line x1="520" y1="170" x2="520" y2="200" stroke="#f1c40f" stroke-width="2" marker-end="url(#arrowhead)" />
+                <line x1="640" y1="170" x2="640" y2="200" stroke="#9b59b6" stroke-width="2" marker-end="url(#arrowhead)" />
+                
+                <line x1="200" y1="260" x2="200" y2="290" stroke="#2ecc71" stroke-width="2" marker-end="url(#arrowhead)" />
+                <line x1="360" y1="260" x2="360" y2="290" stroke="#3498db" stroke-width="2" marker-end="url(#arrowhead)" />
+                <line x1="520" y1="260" x2="520" y2="290" stroke="#f1c40f" stroke-width="2" marker-end="url(#arrowhead)" />
+                <line x1="640" y1="260" x2="640" y2="290" stroke="#9b59b6" stroke-width="2" marker-end="url(#arrowhead)" />
+                
+                <!-- 定义箭头 -->
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" />
+                    </marker>
+                </defs>
+            </svg>
+        </div>
+
+        <div id="window-types" class="subsection">
+            <h3>3.1 窗口类型</h3>
+            
+            <p>从功能上，Flink 窗口可以分为两大类：</p>
+            
+            <h4>按键分区窗口 (Keyed Windows)</h4>
+            <p>对已经按 key 分区的 KeyedStream 进行窗口操作，每个 key 都有自己的窗口。</p>
+            
+            <div class="api-box">
+                <div class="api-name">创建按键分区窗口</div>
+                <div class="api-signature">keyed_stream.window(...)</div>
+                <div class="api-description">
+                    在 KeyedStream 上应用窗口操作，每个键都有自己独立的窗口。
+                </div>
+            </div>
+            
+            <h4>非按键窗口 (Non-Keyed Windows)</h4>
+            <p>对普通 DataStream 进行窗口操作，所有数据共享相同的窗口。</p>
+            
+            <div class="api-box">
+                <div class="api-name">创建非按键窗口</div>
+                <div class="api-signature">data_stream.window_all(...)</div>
+                <div class="api-description">
+                    在 DataStream 上应用窗口操作，所有元素共享相同的窗口。
+                </div>
+            </div>
+        </div>
+
+        <div id="window-functions" class="subsection">
+            <h3>3.2 窗口函数</h3>
+            
+            <p>窗口函数定义了如何处理窗口中的元素。Flink 支持几种类型的窗口函数：</p>
+            
+            <h4>增量聚合函数 (ReduceFunction / AggregateFunction)</h4>
+            <p>这些函数随着元素的到来逐步聚合，而不需要存储所有元素。</p>
+            
+            <div class="api-box">
+                <div class="api-name">ReduceFunction</div>
+                <div class="api-signature">window.reduce(reduce_function)</div>
+                <div class="api-description">
+                    将窗口中的元素逐个合并为一个结果，输入和输出类型相同。
+                </div>
+            </div>
+            
+            <div class="api-box">
+                <div class="api-name">AggregateFunction</div>
+                <div class="api-signature">window.aggregate(aggregate_function)</div>
+                <div class="api-description">
+                    更通用的增量聚合，允许输入类型、累加器类型和输出类型不同。
+                </div>
+            </div>
+            
+            <h4>全窗口函数 (WindowFunction / ProcessWindowFunction)</h4>
+            <p>这些函数可以访问窗口中的所有元素，并提供更多上下文信息，但需要更多内存。</p>
+            
+            <div class="api-box">
+                <div class="api-name">WindowFunction</div>
+                <div class="api-signature">window.apply(window_function)</div>
+                <div class="api-description">
+                    可以访问窗口中的所有元素，但上下文信息有限。
+                </div>
+            </div>
+            
+            <div class="api-box">
+                <div class="api-name">ProcessWindowFunction</div>
+                <div class="api-signature">window.process(process_window_function)</div>
+                <div class="api-description">
+                    提供最强大的功能，可以访问窗口中的所有元素和完整的上下文信息。
+                </div>
+            </div>
+            
+            <div class="note">
+                <strong>注意：</strong> 为了兼顾效率和功能，可以将增量聚合函数与全窗口函数结合使用，如 <code>reduce(...).apply(...)</code> 或 <code>aggregate(...).process(...)</code>。
+            </div>
+        </div>
+    </div>
+
+    <div id="window-assigners" class="section">
+        <h2>4. 窗口的划分 (Window Assigners)</h2>
+        
+        <p>窗口分配器定义了如何将数据元素分配到具体的窗口中。Flink 提供了几种内置的窗口分配器：</p>
+
+        <div class="image-container">
+            <svg width="800" height="500" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                <!-- 背景 -->
+                <rect x="50" y="40" width="700" height="430" fill="#f5f5f5" stroke="#cccccc" stroke-width="2" rx="10" />
+                
+                <!-- 标题 -->
+                <text x="400" y="25" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">Flink 窗口划分类型</text>
+                
+                <!-- 时间轴 -->
+                <line x1="100" y1="450" x2="700" y2="450" stroke="#3498db" stroke-width="2" />
+                <text x="400" y="480" font-family="Arial" font-size="14" text-anchor="middle">时间 →</text>
+                
+                <!-- 滚动窗口 -->
+                <text x="180" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">滚动窗口 (Tumbling Windows)</text>
+                <rect x="100" y="80" width="160" height="60" fill="#3498db" fill-opacity="0.4" stroke="#3498db" stroke-width="2" rx="5" />
+                <rect x="260" y="80" width="160" height="60" fill="#3498db" fill-opacity="0.4" stroke="#3498db" stroke-width="2" rx="5" />
+                <rect x="420" y="80" width="160" height="60" fill="#3498db" fill-opacity="0.4" stroke="#3498db" stroke-width="2" rx="5" />
+                <rect x="580" y="80" width="120" height="60" fill="#3498db" fill-opacity="0.4" stroke="#3498db" stroke-width="2" rx="5" />
+                
+                <!-- 滑动窗口 -->
+                <text x="180" y="170" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">滑动窗口 (Sliding Windows)</text>
+                <rect x="100" y="180" width="200" height="60" fill="#2ecc71" fill-opacity="0.4" stroke="#2ecc71" stroke-width="2" rx="5" />
+                <rect x="200" y="180" width="200" height="60" fill="#2ecc71" fill-opacity="0.4" stroke="#2ecc71" stroke-width="2" rx="5" />
+                <rect x="300" y="180" width="200" height="60" fill="#2ecc71" fill-opacity="0.4" stroke="#2ecc71" stroke-width="2" rx="5" />
+                <rect x="400" y="180" width="200" height="60" fill="#2ecc71" fill-opacity="0.4" stroke="#2ecc71" stroke-width="2" rx="5" />
+                <rect x="500" y="180" width="200" height="60" fill="#2ecc71" fill-opacity="0.4" stroke="#2ecc71" stroke-width="2" rx="5" />
+                
+                <!-- 会话窗口 -->
+                <text x="180" y="270" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">会话窗口 (Session Windows)</text>
+                <rect x="100" y="280" width="120" height="60" fill="#f1c40f" fill-opacity="0.4" stroke="#f1c40f" stroke-width="2" rx="5" />
+                <rect x="280" y="280" width="160" height="60" fill="#f1c40f" fill-opacity="0.4" stroke="#f1c40f" stroke-width="2" rx="5" />
+                <rect x="520" y="280" width="180" height="60" fill="#f1c40f" fill-opacity="0.4" stroke="#f1c40f" stroke-width="2" rx="5" />
+                
+                <!-- 全局窗口 -->
+                <text x="180" y="370" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">全局窗口 (Global Windows)</text>
+                <rect x="100" y="380" width="600" height="60" fill="#9b59b6" fill-opacity="0.4" stroke="#9b59b6" stroke-width="2" rx="5" />
+                
+                <!-- 刻度 -->
+                <line x1="100" y1="450" x2="100" y2="455" stroke="#333" stroke-width="2" />
+                <line x1="200" y1="450" x2="200" y2="455" stroke="#333" stroke-width="2" />
+                <line x1="300" y1="450" x2="300" y2="455" stroke="#333" stroke-width="2" />
+                <line x1="400" y1="450" x2="400" y2="455" stroke="#333" stroke-width="2" />
+                <line x1="500" y1="450" x2="500" y2="455" stroke="#333" stroke-width="2" />
+                <line x1="600" y1="450" x2="600" y2="455" stroke="#333" stroke-width="2" />
+                <line x1="700" y1="450" x2="700" y2="455" stroke="#333" stroke-width="2" />
+            </svg>
+        </div>
+
+        <div id="tumbling-windows" class="subsection">
+            <h3>4.1 滚动窗口 (Tumbling Windows)</h3>
+            <p>滚动窗口将数据流按固定大小的时间间隔分割，窗口之间不重叠也不存在间隙。</p>
+            
+            <div class="api-box">
+                <div class="api-name">创建滚动窗口</div>
+                <div class="api-signature">
+                    # 基于事件时间的滚动窗口<br>
+                    keyed_stream.window(TumblingEventTimeWindows.of(Time.seconds(5)))<br><br>
+                    # 基于处理时间的滚动窗口<br>
+                    keyed_stream.window(TumblingProcessingTimeWindows.of(Time.minutes(1)))<br><br>
+                    # 简写形式<br>
+                    keyed_stream.tumbling_event_time_windows(Time.seconds(5))<br>
+                    keyed_stream.tumbling_processing_time_windows(Time.minutes(1))
+                </div>
+                <div class="api-description">
+                    创建固定大小的滚动窗口，适用于定期处理数据，如每小时统计、每天报告等场景。
+                </div>
+            </div>
+            
+            <pre>
+                我将继续为您完成PyFlink DataStream课件的HTML内容。我会接着您提供的代码继续生成。
+
+                ```html
+                from pyflink.datastream import StreamExecutionEnvironment
+                from pyflink.datastream.window import TumblingEventTimeWindows
+                from pyflink.common.time import Time
+                from pyflink.common import WatermarkStrategy, Time, Types
+                from pyflink.common.watermark_strategy import TimestampAssigner
+                
+                env = StreamExecutionEnvironment.get_execution_environment()
+                env.set_parallelism(1)
+                
+                # 创建数据流并添加时间戳和水位线
+                data_stream = env.from_collection([("A", 1, 1000), ("A", 2, 2000), ("B", 3, 3000)],
+                                                 type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
+                
+                # 提取时间戳并添加水位线
+                class MyTimestampAssigner(TimestampAssigner):
+                    def extract_timestamp(self, value, record_timestamp):
+                        # 第三个字段是事件时间戳（毫秒）
+                        return value[2]
+                
+                watermark_strategy = (
+                    WatermarkStrategy
+                    .for_bounded_out_of_orderness(Time.milliseconds(500))
+                    .with_timestamp_assigner(MyTimestampAssigner())
+                )
+                
+                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+                
+                # 按key分组并应用滚动窗口
+                result = (
+                    data_stream
+                    .key_by(lambda x: x[0])  # 按第一个字段(key)分组
+                    .window(TumblingEventTimeWindows.of(Time.seconds(5)))  # 5秒滚动窗口
+                    .sum(1)  # 对第二个字段求和
+                )
+                
+                result.print()
+                env.execute("Tumbling Window Example")
+                </pre>
+                
+                            <div class="note">
+                                <strong>特点：</strong> 滚动窗口每个元素只属于一个窗口，适合需要定期计算且窗口之间相互独立的场景。
+                            </div>
+                        </div>
+                
+                        <div id="sliding-windows" class="subsection">
+                            <h3>4.2 滑动窗口 (Sliding Windows)</h3>
+                            <p>滑动窗口按固定的大小和滑动间隔分割数据流，窗口之间可能重叠，一个元素可能被分配到多个窗口中。</p>
+                            
+                            <div class="api-box">
+                                <div class="api-name">创建滑动窗口</div>
+                                <div class="api-signature">
+                                    # 基于事件时间的滑动窗口<br>
+                                    keyed_stream.window(SlidingEventTimeWindows.of(Time.seconds(10), Time.seconds(5)))<br><br>
+                                    # 基于处理时间的滑动窗口<br>
+                                    keyed_stream.window(SlidingProcessingTimeWindows.of(Time.minutes(1), Time.seconds(30)))<br><br>
+                                    # 简写形式<br>
+                                    keyed_stream.sliding_event_time_windows(Time.seconds(10), Time.seconds(5))<br>
+                                    keyed_stream.sliding_processing_time_windows(Time.minutes(1), Time.seconds(30))
+                                </div>
+                                <div class="api-description">
+                                    创建滑动窗口，第一个参数是窗口大小，第二个参数是滑动间隔。适用于需要平滑计算或检测趋势的场景。
+                                </div>
+                            </div>
+                            
+                            <pre>
+                from pyflink.datastream import StreamExecutionEnvironment
+                from pyflink.datastream.window import SlidingEventTimeWindows
+                from pyflink.common import WatermarkStrategy, Time, Types
+                from pyflink.common.watermark_strategy import TimestampAssigner
+                
+                env = StreamExecutionEnvironment.get_execution_environment()
+                env.set_parallelism(1)
+                
+                # 创建数据流
+                data_stream = env.from_collection([("A", 1, 1000), ("A", 2, 2000), ("A", 3, 5000), ("B", 1, 6000)],
+                                                 type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
+                
+                # 提取时间戳并添加水位线
+                class MyTimestampAssigner(TimestampAssigner):
+                    def extract_timestamp(self, value, record_timestamp):
+                        return value[2]
+                
+                watermark_strategy = (
+                    WatermarkStrategy
+                    .for_bounded_out_of_orderness(Time.milliseconds(500))
+                    .with_timestamp_assigner(MyTimestampAssigner())
+                )
+                
+                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+                
+                # 应用滑动窗口: 窗口大小5秒，滑动间隔2秒
+                result = (
+                    data_stream
+                    .key_by(lambda x: x[0])
+                    .window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(2)))
+                    .sum(1)
+                )
+                
+                result.print()
+                env.execute("Sliding Window Example")
+                </pre>
+                
+                            <div class="note">
+                                <strong>特点：</strong> 滑动窗口可以平滑过渡，适合需要连续计算的场景，如移动平均值、数据趋势分析等。
+                            </div>
+                        </div>
+                
+                        <div id="session-windows" class="subsection">
+                            <h3>4.3 会话窗口 (Session Windows)</h3>
+                            <p>会话窗口根据数据的活动周期进行分组，当一段时间没有数据到来时，当前窗口关闭，新数据到来时开启新窗口。</p>
+                            
+                            <div class="api-box">
+                                <div class="api-name">创建会话窗口</div>
+                                <div class="api-signature">
+                                    # 基于事件时间的会话窗口<br>
+                                    keyed_stream.window(EventTimeSessionWindows.withGap(Time.minutes(10)))<br><br>
+                                    # 基于处理时间的会话窗口<br>
+                                    keyed_stream.window(ProcessingTimeSessionWindows.withGap(Time.minutes(5)))<br><br>
+                                    # 简写形式<br>
+                                    keyed_stream.session_window(Time.minutes(10))
+                                </div>
+                                <div class="api-description">
+                                    创建会话窗口，参数是会话间隔（超时时间）。适用于按活动周期分析数据的场景。
+                                </div>
+                            </div>
+                            
+                            <pre>
+                from pyflink.datastream import StreamExecutionEnvironment
+                from pyflink.datastream.window import EventTimeSessionWindows
+                from pyflink.common import WatermarkStrategy, Time, Types
+                from pyflink.common.watermark_strategy import TimestampAssigner
+                
+                env = StreamExecutionEnvironment.get_execution_environment()
+                env.set_parallelism(1)
+                
+                # 创建数据流 - 模拟用户会话活动
+                data_stream = env.from_collection([
+                    # 用户A的第一个会话
+                    ("A", 1, 1000),  # 会话开始
+                    ("A", 2, 3000),  # 2秒后的活动
+                    ("A", 3, 4000),  # 1秒后的活动
+                    
+                    # 用户A的第二个会话（与前一个间隔大）
+                    ("A", 4, 15000),  # 11秒后开始新会话
+                    ("A", 5, 16000),  # 1秒后的活动
+                    
+                    # 用户B的会话
+                    ("B", 1, 5000),
+                    ("B", 2, 7000)
+                ],
+                type_info=Types.TUPLE([Types.STRING(), Types.INT(), Types.LONG()]))
+                
+                # 提取时间戳并添加水位线
+                class MyTimestampAssigner(TimestampAssigner):
+                    def extract_timestamp(self, value, record_timestamp):
+                        return value[2]
+                
+                watermark_strategy = (
+                    WatermarkStrategy
+                    .for_bounded_out_of_orderness(Time.milliseconds(500))
+                    .with_timestamp_assigner(MyTimestampAssigner())
+                )
+                
+                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+                
+                # 应用会话窗口: 会话间隔为5秒
+                result = (
+                    data_stream
+                    .key_by(lambda x: x[0])
+                    .window(EventTimeSessionWindows.withGap(Time.seconds(5)))
+                    .sum(1)
+                )
+                
+                result.print()
+                env.execute("Session Window Example")
+                </pre>
+                
+                            <div class="note">
+                                <strong>特点：</strong> 会话窗口动态适应数据分布，非常适合捕获用户行为、网络会话等场景。
+                            </div>
+                        </div>
+                
+                        <div id="global-windows" class="subsection">
+                            <h3>4.4 全局窗口 (Global Windows)</h3>
+                            <p>全局窗口将所有具有相同 key 的元素分配到同一个窗口中，需要自定义触发器来决定何时处理窗口数据。</p>
+                            
+                            <div class="api-box">
+                                <div class="api-name">创建全局窗口</div>
+                                <div class="api-signature">
+                                    keyed_stream.window(GlobalWindows.create())<br><br>
+                                    # 简写形式<br>
+                                    keyed_stream.global_windows()
+                                </div>
+                                <div class="api-description">
+                                    创建全局窗口，通常需要配合自定义触发器使用，否则窗口不会自动触发计算。
+                                </div>
+                            </div>
+                            
+                            <pre>
+                from pyflink.datastream import StreamExecutionEnvironment
+                from pyflink.datastream.window import GlobalWindows
+                from pyflink.datastream.window.trigger import CountTrigger
+                from pyflink.common import Types
+                
+                env = StreamExecutionEnvironment.get_execution_environment()
+                env.set_parallelism(1)
+                
+                # 创建数据流
+                data_stream = env.from_collection([("A", 1), ("A", 2), ("B", 3), ("B", 4), ("A", 5)],
+                                                 type_info=Types.TUPLE([Types.STRING(), Types.INT()]))
+                
+                # 应用全局窗口并设置计数触发器
+                result = (
+                    data_stream
+                    .key_by(lambda x: x[0])
+                    .window(GlobalWindows.create())
+                    .trigger(CountTrigger.of(2))  # 每收集到2个元素触发一次计算
+                    .sum(1)
+                )
+                
+                result.print()
+                env.execute("Global Window Example")
+                </pre>
+                
+                            <div class="note">
+                                <strong>特点：</strong> 全局窗口灵活性最高，但需要明确指定触发条件，否则数据会一直累积而不处理。
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div id="watermarks" class="section">
+                        <h2>5. 水位线 (Watermarks)</h2>
+                        
+                        <p>水位线是事件时间处理中的关键概念，用于处理乱序数据并标记时间进展。水位线是一种特殊的时间戳，表示"在这个时间点之前的事件都已到达或不再期望到达"。</p>
+                
+                        <div class="image-container">
+                            <svg width="800" height="350" viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg">
+                                <!-- 背景 -->
+                                <rect x="50" y="40" width="700" height="280" fill="#f0f8ff" stroke="#3498db" stroke-width="2" rx="10" />
+                                
+                                <!-- 标题 -->
+                                <text x="400" y="25" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">水位线工作原理</text>
+                                
+                                <!-- 时间轴 -->
+                                <line x1="100" y1="250" x2="700" y2="250" stroke="#3498db" stroke-width="2" />
+                                <text x="400" y="280" font-family="Arial" font-size="14" text-anchor="middle">事件时间 →</text>
+                                
+                                <!-- 时间刻度 -->
+                                <line x1="150" y1="250" x2="150" y2="255" stroke="#666" stroke-width="2" />
+                                <text x="150" y="270" font-family="Arial" font-size="12" text-anchor="middle">t=0</text>
+                                
+                                <line x1="250" y1="250" x2="250" y2="255" stroke="#666" stroke-width="2" />
+                                <text x="250" y="270" font-family="Arial" font-size="12" text-anchor="middle">t=5</text>
+                                
+                                <line x1="350" y1="250" x2="350" y2="255" stroke="#666" stroke-width="2" />
+                                <text x="350" y="270" font-family="Arial" font-size="12" text-anchor="middle">t=10</text>
+                                
+                                <line x1="450" y1="250" x2="450" y2="255" stroke="#666" stroke-width="2" />
+                                <text x="450" y="270" font-family="Arial" font-size="12" text-anchor="middle">t=15</text>
+                                
+                                <line x1="550" y1="250" x2="550" y2="255" stroke="#666" stroke-width="2" />
+                                <text x="550" y="270" font-family="Arial" font-size="12" text-anchor="middle">t=20</text>
+                                
+                                <line x1="650" y1="250" x2="650" y2="255" stroke="#666" stroke-width="2" />
+                                <text x="650" y="270" font-family="Arial" font-size="12" text-anchor="middle">t=25</text>
+                                
+                                <!-- 事件到达 -->
+                                <circle cx="180" cy="170" r="10" fill="#e74c3c" />
+                                <text x="180" y="155" font-family="Arial" font-size="12" text-anchor="middle">t=3</text>
+                                
+                                <circle cx="230" cy="130" r="10" fill="#e74c3c" />
+                                <text x="230" y="115" font-family="Arial" font-size="12" text-anchor="middle">t=4</text>
+                                
+                                <circle cx="290" cy="190" r="10" fill="#e74c3c" />
+                                <text x="290" y="175" font-family="Arial" font-size="12" text-anchor="middle">t=7</text>
+                                
+                                <circle cx="320" cy="150" r="10" fill="#e74c3c" />
+                                <text x="320" y="135" font-family="Arial" font-size="12" text-anchor="middle">t=9</text>
+                                
+                                <circle cx="260" cy="110" r="10" fill="#e74c3c" />
+                                <text x="260" y="95" font-family="Arial" font-size="12" text-anchor="middle">t=6</text>
+                                
+                                <circle cx="400" cy="170" r="10" fill="#e74c3c" />
+                                <text x="400" y="155" font-family="Arial" font-size="12" text-anchor="middle">t=12</text>
+                                
+                                <circle cx="480" cy="130" r="10" fill="#e74c3c" />
+                                <text x="480" y="115" font-family="Arial" font-size="12" text-anchor="middle">t=16</text>
+                                
+                                <circle cx="520" cy="190" r="10" fill="#e74c3c" />
+                                <text x="520" y="175" font-family="Arial" font-size="12" text-anchor="middle">t=18</text>
+                                
+                                <circle cx="450" cy="150" r="10" fill="#e74c3c" />
+                                <text x="450" y="135" font-family="Arial" font-size="12" text-anchor="middle">t=15</text>
+                                
+                                <circle cx="370" cy="110" r="10" fill="#e74c3c" />
+                                <text x="370" y="95" font-family="Arial" font-size="12" text-anchor="middle">t=11</text>
+                                
+                                <!-- 水位线 -->
+                                <line x1="100" y1="200" x2="250" y2="200" stroke="#2ecc71" stroke-width="3" stroke-dasharray="5,5" />
+                                <text x="175" y="215" font-family="Arial" font-size="12" text-anchor="middle" fill="#2ecc71">水位线 W(t=2)</text>
+                                
+                                <line x1="250" y1="200" x2="350" y2="200" stroke="#2ecc71" stroke-width="3" stroke-dasharray="5,5" />
+                                <text x="300" y="215" font-family="Arial" font-size="12" text-anchor="middle" fill="#2ecc71">水位线 W(t=7)</text>
+                                
+                                <line x1="350" y1="200" x2="450" y2="200" stroke="#2ecc71" stroke-width="3" stroke-dasharray="5,5" />
+                                <text x="400" y="215" font-family="Arial" font-size="12" text-anchor="middle" fill="#2ecc71">水位线 W(t=12)</text>
+                                
+                                <line x1="450" y1="200" x2="550" y2="200" stroke="#2ecc71" stroke-width="3" stroke-dasharray="5,5" />
+                                <text x="500" y="215" font-family="Arial" font-size="12" text-anchor="middle" fill="#2ecc71">水位线 W(t=17)</text>
+                                
+                                <!-- 说明文本 -->
+                                <text x="400" y="60" font-family="Arial" font-size="14" text-anchor="middle">水位线表示"不再期望收到比这个时间更早的事件"</text>
+                                <text x="400" y="80" font-family="Arial" font-size="14" text-anchor="middle">当水位线达到窗口结束时间时，触发窗口计算</text>
+                            </svg>
+                        </div>
+                
+                        <div id="watermark-strategies" class="subsection">
+                            <h3>5.1 水位线生成策略</h3>
+                            
+                            <p>PyFlink 提供了几种常用的水位线生成策略：</p>
+                            
+                            <h4>有序流的水位线策略</h4>
+                            <div class="api-box">
+                                <div class="api-name">单调递增水位线</div>
+                                <div class="api-signature">WatermarkStrategy.for_monotonous_timestamps()</div>
+                                <div class="api-description">
+                                    适用于事件按时间顺序到达的情况，水位线等于最新看到的事件时间戳。
+                                </div>
+                            </div>
+                            
+                            <h4>乱序流的水位线策略</h4>
+                            <div class="api-box">
+                                <div class="api-name">固定延迟水位线</div>
+                                <div class="api-signature">WatermarkStrategy.for_bounded_out_of_orderness(Time.seconds(n))</div>
+                                <div class="api-description">
+                                    为乱序事件设置固定的最大延迟时间，水位线值为：最大事件时间戳 - 最大延迟。
+                                </div>
+                            </div>
+                            
+                            <h4>自定义水位线生成器</h4>
+                            <div class="api-box">
+                                <div class="api-name">自定义水位线生成策略</div>
+                                <div class="api-signature">
+                                    WatermarkStrategy.for_generator(lambda ctx: WatermarkGenerator_impl)
+                                </div>
+                                <div class="api-description">
+                                    当内置策略不满足需求时，可以实现自定义的水位线生成器。
+                                </div>
+                            </div>
+                            
+                            <pre>
+                from pyflink.common import WatermarkStrategy, Time, Types
+                from pyflink.common.watermark_strategy import TimestampAssigner
+                from pyflink.datastream import StreamExecutionEnvironment
+                from pyflink.datastream.window import TumblingEventTimeWindows
+                
+                env = StreamExecutionEnvironment.get_execution_environment()
+                env.set_parallelism(1)
+                
+                # 创建数据流
+                data_stream = env.from_collection([
+                    ("sensor1", 20.0, 1618953000000),  # 2021-04-21 02:30:00
+                    ("sensor1", 21.5, 1618953300000),  # 2021-04-21 02:35:00
+                    ("sensor1", 18.5, 1618952700000),  # 2021-04-21 02:25:00 (乱序事件)
+                    ("sensor1", 22.0, 1618953600000),  # 2021-04-21 02:40:00
+                    ("sensor2", 30.5, 1618953000000),  # 2021-04-21 02:30:00
+                    ("sensor2", 31.0, 1618953600000),  # 2021-04-21 02:40:00
+                ],
+                type_info=Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
+                
+                # 定义时间戳提取器
+                class MyTimestampAssigner(TimestampAssigner):
+                    def extract_timestamp(self, value, record_timestamp):
+                        return value[2]  # 使用第三个字段作为事件时间戳
+                
+                # 为乱序事件定义水位线策略，设置最大延迟为5分钟
+                watermark_strategy = (
+                    WatermarkStrategy
+                    .for_bounded_out_of_orderness(Time.minutes(5))  # 最大容忍5分钟的乱序
+                    .with_timestamp_assigner(MyTimestampAssigner())
+                )
+                
+                # 应用水位线策略
+                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+                
+                # 使用滚动窗口聚合
+                result = (
+                    data_stream
+                    .key_by(lambda x: x[0])  # 按传感器ID分组
+                    .window(TumblingEventTimeWindows.of(Time.minutes(10)))  # 10分钟滚动窗口
+                    .aggregate(lambda acc, value: (value[0], acc[1] + value[1], acc[2] + 1),  # 计算温度总和和计数
+                              lambda: ("", 0.0, 0),  # 初始累加器
+                              lambda acc: (acc[0], acc[1] / acc[2]))  # 计算平均温度
+                )
+                
+                result.print()
+                env.execute("Watermark Example")
+                </pre>
+                        </div>
+                
+                        <div id="watermark-use-cases" class="subsection">
+                            <h3>5.2 水位线使用场景</h3>
+                            
+                            <p>水位线主要应用于以下场景：</p>
+                            
+                            <h4>处理乱序数据</h4>
+                            <p>当数据到达顺序与事件产生顺序不一致时，水位线可以保证在计算窗口结果前有一定时间等待迟到的数据。</p>
+                            
+                            <h4>处理迟到数据</h4>
+                            <p>对于超过水位线延迟到达的数据，Flink 提供了几种处理方式：</p>
+                            
+                            <div class="api-box">
+                                <div class="api-name">允许迟到数据</div>
+                                <div class="api-signature">window.allowed_lateness(Time.seconds(10))</div>
+                                <div class="api-description">
+                                    设置窗口允许的最大迟到时间，迟到但仍在允许范围内的数据仍会被计算。
+                                </div>
+                            </div>
+                            
+                            <div class="api-box">
+                                <div class="api-name">处理迟到数据</div>
+                                <div class="api-signature">window.side_output_late_data(output_tag)</div>
+                                <div class="api-description">
+                                    将超过允许迟到时间的数据发送到侧输出流，可以单独处理。
+                                </div>
+                            </div>
+                            
+                            <pre>
+                from pyflink.datastream import StreamExecutionEnvironment, OutputTag
+                from pyflink.datastream.window import TumblingEventTimeWindows
+                from pyflink.common import WatermarkStrategy, Time, Types
+                from pyflink.common.watermark_strategy import TimestampAssigner
+                
+                env = StreamExecutionEnvironment.get_execution_environment()
+                env.set_parallelism(1)
+                
+                # 创建数据流
+                data_stream = env.from_collection([
+                    ("sensor1", 20.0, 1618953000000),  # 正常事件
+                    ("sensor1", 21.5, 1618953300000),  # 正常事件
+                    ("sensor1", 18.5, 1618952700000),  # 略微延迟的事件
+                    ("sensor1", 22.0, 1618953600000),  # 正常事件
+                    ("sensor1", 17.5, 1618951800000),  # 严重延迟的事件
+                ],
+                type_info=Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
+                
+                # 设置时间戳提取器和水位线生成器
+                class MyTimestampAssigner(TimestampAssigner):
+                    def extract_timestamp(self, value, record_timestamp):
+                        return value[2]
+                
+                watermark_strategy = (
+                    WatermarkStrategy
+                    .for_bounded_out_of_orderness(Time.seconds(30))  # 允许30秒的乱序
+                    .with_timestamp_assigner(MyTimestampAssigner())
+                )
+                
+                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+                
+                # 定义迟到数据的侧输出标签
+                late_output_tag = OutputTag("late-data", Types.TUPLE([Types.STRING(), Types.FLOAT(), Types.LONG()]))
+                
+                # 应用窗口操作
+                main_stream = (
+                    data_stream
+                    .key_by(lambda x: x[0])
+                    .window(TumblingEventTimeWindows.of(Time.minutes(10)))
+                    .allowed_lateness(Time.minutes(1))  # 允许1分钟的迟到
+                    .side_output_late_data(late_output_tag)  # 将超过允许迟到时间的数据发送到侧输出
+                    .aggregate(lambda acc, value: (value[0], acc[1] + value[1], acc[2] + 1),
+                              lambda: ("", 0.0, 0),
+                              lambda acc: (acc[0], acc[1] / acc[2]))
+                )
+                
+                # 获取主流和迟到数据流
+                main_stream.print("Main Output")
+                main_stream.get_side_output(late_output_tag).print("Late Data")
+                
+                env.execute("Late Data Handling Example")
+                </pre>
+                            
+                            <div class="note">
+                                <strong>最佳实践：</strong> 对于可接受的延迟，设置适当的水位线延迟和窗口迟到允许时间，对于极端延迟的数据，使用侧输出单独处理。
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div id="api-examples" class="section">
+                        <h2>6. API 详解与示例</h2>
+                        
+                        <div id="time-apis" class="subsection">
+                            <h3>6.1 时间相关 API</h3>
+                            
+                            <table>
+                                <tr>
+                                    <th>API</th>
+                                    <th>说明</th>
+                                    <th>示例</th>
+                                </tr>
+                                <tr>
+                                    <td>TimeCharacteristic</td>
+                                    <td>设置时间特性</td>
+                                    <td>env.set_stream_time_characteristic(TimeCharacteristic.EventTime)</td>
+                                </tr>
+                                <tr>
+                                    <td>Time.milliseconds(n)<br>Time.seconds(n)<br>Time.minutes(n)<br>Time.hours(n)<br>Time.days(n)</td>
+                                    <td>时间间隔创建</td>
+                                    <td>Time.seconds(5) # 创建5秒的时间间隔</td>
+                                </tr>
+                                <tr>
+                                    <td>TimestampAssigner</td>
+                                    <td>从记录中提取时间戳</td>
+                                    <td>
+                                        class MyAssigner(TimestampAssigner):<br>
+                                        &nbsp;&nbsp;def extract_timestamp(self, value, record_timestamp):<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;return value[2]
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div class="note">
+                                <strong>注意：</strong> 从 Flink 1.12 开始，不再需要显式调用 <code>set_stream_time_characteristic</code>，默认使用事件时间。
+                            </div>
+                        </div>
+                
+                        <div id="window-apis" class="subsection">
+                            <h3>6.2 窗口相关 API</h3>
+                            
+                            <table>
+                                <tr>
+                                    <th>分类</th>
+                                    <th>API</th>
+                                    <th>说明</th>
+                                </tr>
+                                <tr>
+                                    <td rowspan="4">窗口分配器</td>
+                                    <td>TumblingEventTimeWindows.of(Time.seconds(5))</td>
+                                    <td>基于事件时间的5秒滚动窗口</td>
+                                </tr>
+                                <tr>
+                                    <td>SlidingEventTimeWindows.of(Time.seconds(10), Time.seconds(5))</td>
+                                    <td>基于事件时间的10秒大小、5秒滑动间隔的滑动窗口</td>
+                                </tr>
+                                <tr>
+                                    <td>EventTimeSessionWindows.withGap(Time.minutes(10))</td>
+                                    <td>基于事件时间的10分钟会话间隔的会话窗口</td>
+                                </tr>
+                                <tr>
+                                    <td>GlobalWindows.create()</td>
+                                    <td>全局窗口，通常需要与自定义触发器一起使用</td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="4">窗口函数</td>
+                                    <td>window.reduce(...)</td>
+                                    <td>增量聚合，输入和输出类型相同</td>
+                                </tr>
+                                <tr>
+                                    <td>window.aggregate(...)</td>
+                                    <td>通用的增量聚合，支持不同的输入、累加器和输出类型</td>
+                                </tr>
+                                <tr>
+                                    <td>window.apply(...)</td>
+                                    <td>应用WindowFunction，可以访问窗口中的所有元素</td>
+                                </tr>
+                                <tr>
+                                    <td>window.process(...)</td>
+                                    <td>应用ProcessWindowFunction，可以访问窗口中的所有元素和上下文</td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="2">组合使用</td>
+                                    <td>window.reduce(...).apply(...)</td>
+                                    <td>先增量聚合，再应用窗口函数，兼顾效率和功能</td>
+                                </tr>
+                                <tr>
+                                    <td>window.aggregate(...).process(...)</td>
+                                    <td>类似上面的组合，但使用更通用的聚合函数</td>
+                                </tr>
+                            </table>
+                            
+                            <div class="api-box">
+                                <div class="api-name">组合使用示例</div>
+                                <pre>
+                from pyflink.datastream import StreamExecutionEnvironment
+                from pyflink.datastream.window import TumblingEventTimeWindows
+                from pyflink.datastream.functions import ReduceFunction, ProcessWindowFunction
+                from pyflink.common import WatermarkStrategy, Time, Types
+                from pyflink.common.watermark_strategy import TimestampAssigner
+                
+                env = StreamExecutionEnvironment.get_execution_environment()
+                
+                # 定义数据源
+                data_stream = env.from_collection([
+                    ("user1", "click", 1618953000000),
+                    ("user1", "scroll", 1618953010000),
+                    ("user2", "click", 1618953005000),
+                    ("user1", "click", 1618953020000),
+                    ("user2", "scroll", 1618953015000),
+                    ("user2", "click", 1618953025000),
+                ],
+                type_info=Types.TUPLE([Types.STRING(), Types.STRING(), Types.LONG()]))
+                
+                # 时间戳分配
+                class MyTimestampAssigner(TimestampAssigner):
+                    def extract_timestamp(self, value, record_timestamp):
+                        return value[2]
+                
+                watermark_strategy = WatermarkStrategy.for_monotonous_timestamps() \
+                    .with_timestamp_assigner(MyTimestampAssigner())
+                
+                data_stream = data_stream.assign_timestamps_and_watermarks(watermark_strategy)
+                
+                # 定义Reduce函数和ProcessWindow函数
+                class CountReduce(ReduceFunction):
+                    def reduce(self, value1, value2):
+                        # 第一个元素保持不变，第二个元素保存动作类型，第三个元素计数
+                        return (value1[0], value1[1], value1[2] + 1)
+                
+                class WindowResult(ProcessWindowFunction):
+                    def process(self, key, context, elements, collector):
+                        # 从reduce输出提取数据
+                        reduced = next(iter(elements))
+                        user = reduced[0]
+                        action = reduced[1]
+                        count = reduced[2]
+                        
+                        # 获取窗口信息
+                        window_start = context.window().start
+                        window_end = context.window().end
+                        
+                        # 输出结果
+                        collector.collect((user, action, count, window_start, window_end))
+                
+                # 转换数据流格式以适应Reduce函数
+                mapped_stream = data_stream.map(lambda x: (x[0], x[1], 1),
+                                               output_type=Types.TUPLE([Types.STRING(), Types.STRING(), Types.INT()]))
+                
+                # 应用窗口操作，先reduce再process
+                result = mapped_stream \
+                    .key_by(lambda x: x[0]) \
+                    .window(TumblingEventTimeWindows.of(Time.seconds(10))) \
+                    .reduce(CountReduce(), WindowResult())
+                
+                result.print()
+                env.execute("Combined Window Functions Example")
+                </pre>
+                            </div>
+                        </div>
+                
+                        <div id="watermark-apis" class="subsection">
+                            <h3>6.3 水位线相关 API</h3>
+                            
+                            <table>
+                                <tr>
+                                    <th>API</th>
+                                    <th>说明</th>
+                                    <th>示例</th>
+                                </tr>
+                                <tr>
+                                    <td>WatermarkStrategy.for_monotonous_timestamps()</td>
+                                    <td>为有序流创建水位线策略</td>
+                                    <td>水位线等于最新的事件时间戳</td>
+                                </tr>
+                                <tr>
+                                    <td>WatermarkStrategy.for_bounded_out_of_orderness(Time.seconds(n))</td>
+                                    <td>为乱序流创建水位线策略</td>
+                                    <td>水位线 = 最大时间戳 - n秒</td>
+                                </tr>
+                                <tr>
+                                    <td>with_timestamp_assigner(TimestampAssigner)</td>
+                                    <td>指定时间戳提取器</td>
+                                    <td>定义如何从记录中提取事件时间</td>
+                                </tr>
+                                <tr>
+                                    <td>with_idleness(Time.minutes(n))</td>
+                                    <td>设置空闲超时</td>
+                                    <td>源在n分钟没有记录时标记为空闲</td>
+                                </tr>
+                                <tr>
+                                    <td>assign_timestamps_and_watermarks(WatermarkStrategy)</td>
+                                    <td>为数据流分配时间戳和水位线</td>
+                                    <td>应
